@@ -2,11 +2,16 @@
 #define I2C_FUNCTIONS_H
 
 #include <stdio.h>
-#include <string.h>
+// #include <string.h>
 #include <fcntl.h>
-
+#include <unistd.h>
 #include <linux/i2c-dev.h>
+#include <sys/ioctl.h>
 
+// Terrible portability hack between arm-linux on Mac OS and native gcc on raspbian
+#ifndef I2C_M_RD
+#include <linux/i2c.h>
+#endif
 
 #define I2C_NODE "/dev/i2c-"
 

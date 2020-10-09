@@ -35,7 +35,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(motor_hat_node
-    src/motor_hat_twist_node.cpp
+    src/motor_hat_node.cpp
     src/i2c/i2c_functions.cpp
 )
 

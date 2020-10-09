@@ -65,17 +65,17 @@ unsigned char read(unsigned char reg) {
 }
 
 void setPWM(unsigned char channel, unsigned char on, unsigned char off) {
-    write(LED0_ON_L+4*channel, 0x00);
-    write(LED0_ON_H+4*channel, on);
-    write(LED0_OFF_L+4*channel, 0x00);
-    write(LED0_OFF_H+4*channel, off);
+    6write(LED0_ON_L+4*channel, on & 0xFF);
+    write(LED0_ON_H+4*channel, on >> 8);
+    write(LED0_OFF_L+4*channel, off & 0xFF);
+    write(LED0_OFF_H+4*channel, off >> 8);
 }
 
 void setPin(unsigned char pin, unsigned char val) {
     if (val == 0)
-        setPWM(pin, 0, 0x80);
+        setPWM(pin, 0, 4096);
     else if (val == 1)
-        setPWM(pin, 0x80, 0);
+        setPWM(pin, 4096, 0);
     else
         ROS_ERROR("invalid val for setPin(%d, %d)\n", pin, val);
 }

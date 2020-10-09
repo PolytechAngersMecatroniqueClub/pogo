@@ -71,7 +71,7 @@ int i2c_read(int fd, unsigned char slave_addr, unsigned char reg, unsigned char 
     inbuf[0] = 0;
 
     *result = 0;
-    if (ioctl(i2c_fd, I2C_RDWR, &msgset) < 0) {
+    if (ioctl(fd, I2C_RDWR, &msgset) < 0) {
         return -1;
     }
 
