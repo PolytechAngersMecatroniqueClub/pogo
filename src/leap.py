@@ -14,7 +14,18 @@ sys.path.append("/home/remy/Downloads/Leap_Motion_SDK_Linux_2.3.1/LeapDeveloperK
 # import the leap motion library
 import Leap
 
-#
+
+class Parameters:
+    def __init__(self):
+        self.min_speed = 0
+        self.max_speed = 0
+        self.min_x = 0
+        self.max_x = 0
+        self.min_y = 0
+        self.max_y = 0
+        self.min_theta = 0
+        self.max_theta = 0
+
 def normalize(min_val, max_val, val):
     """ function to normalize a value between [-1, 1]  
         according to the max and min of the value
@@ -28,12 +39,13 @@ def normalize(min_val, max_val, val):
 
     return val / max(abs(max_val), abs(min_val))
 
-def main_loop(pub, rate):
+def main_loop(pub, rate, params):
     """ Main loop function of the node
         It connects to the LeapMotion, read the value, normalize them
         and send the twist
             :param pub rospy.topics.Publisher: The twist velocity command publisher
             :param rate rospy.timer.Rate: The rate to publish the command
+            :param params Parameters: The parameters for the normalizations (min and max values)
     """
 
     # connect to the leap motion
@@ -62,11 +74,11 @@ def main_loop(pub, rate):
             # get the hand parameters (position and orientation)
             hand = frame.hands[0]
             # get the speed according to the hight of the hand above the sensor
-            speed = normalize(0, 300, hand.palm_position[1])
+            speed = normalize(params.min_speed, params.max_speed, hand.palm_position[1])
             # get the twist parameters (orientation translation) according to the hand parameters
-            cmd_vel.linear.x = normalize(-100, 100, -hand.palm_position[2])
-            cmd_vel.linear.y =  normalize(-100, 100, hand.palm_position[0])
-            cmd_vel.angular.z = normalize(-0.9, 0.9, hand.direction[0])
+            cmd_vel.linear.x = normalize(params.min_x, params.max_x, -hand.palm_position[2])
+            cmd_vel.linear.y =  normalize(params.min_y, params.max_y, hand.palm_position[0])
+            cmd_vel.angular.z = normalize(params.min_theta, params.max_theta, hand.direction[0])
         else:
             # otherwise the speed is set to 0 to stop the robot
             speed = 0
@@ -94,6 +106,19 @@ if __name__ == "__main__":
     # to sleep in the loop, the Twist will be publised at a 10Hz rate
     rate = rospy.Rate(10)  # 10 Hz
 
+    params = Parameters()
+
+    # get the parameters from the launch file
+    # the second value is the default value
+    params.min_speed = rospy.get_param('min_speed', 0)
+    params.max_speed = rospy.get_param('max_speed', 300)
+    params.min_x =     rospy.get_param('min_x',    -100)
+    params.max_x =     rospy.get_param('max_x',     100)
+    params.min_y =     rospy.get_param('min_y',    -100)
+    params.max_y =     rospy.get_param('max_y',     100)
+    params.min_theta = rospy.get_param('min_theta',-0.9)
+    params.max_theta = rospy.get_param('max_theta', 0.9)
+
     # The Leap motion library can only be used with python 2.7...
     if sys.version_info[0] > 2 or sys.version_info[1] < 6:
         rospy.logerr("You need Python 2.7 to run this script")
@@ -106,6 +131,6 @@ if __name__ == "__main__":
 
     # Start the main loop of the node
     try:
-        main_loop(pub=pub, rate=rate)
+        main_loop(pub=pub, rate=rate, params=params)
     except rospy.ROSInterruptException as _:
         pass
