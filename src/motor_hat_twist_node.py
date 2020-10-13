@@ -5,32 +5,36 @@ from geometry_msgs.msg import Twist
 # sudo pip3 install adafruit-circuitpython-motorkit
 from adafruit_motorkit import MotorKit
 
+from matrix import Matrix
+
 kit = MotorKit()
+
+jacobian = Matrix(4, 3)
+direction = Matrix(3, 1)
 
 def callback(vel_msg):
     """
         note: throttle= [-1; 1]
     """
-    global kit
+    global kit, jacobian, direction
 
-    if vel_msg.linear.x != 0:
-        # avancer
-        kit.motor1.throttle = vel_msg.linear.x
-        kit.motor2.throttle = vel_msg.linear.x
-        kit.motor3.throttle = vel_msg.linear.x
-        kit.motor4.throttle = vel_msg.linear.x
-    elif vel_msg.linear.y != 0:
-        kit.motor1.throttle = vel_msg.linear.y
-        kit.motor2.throttle = vel_msg.linear.y
-        kit.motor3.throttle = vel_msg.linear.y
-        kit.motor4.throttle = vel_msg.linear.y
-    elif vel_msg.angular.z != 0:
-        kit.motor1.throttle = vel_msg.angular.z
-        kit.motor2.throttle = vel_msg.angular.z
-        kit.motor3.throttle = vel_msg.angular.z
-        kit.motor4.throttle = vel_msg.angular.z
+    direction[0, 0] = vel_msg.linear.x
+    direction[1, 0] = vel_msg.linear.y
+    direction[2, 0] = vel_msg.angular.z
 
-    
+    print("direction\n", direction)
+    print("jacobian\n", jacobian)
+
+    motors_cmd = jacobian * direction
+
+    kit.motor1.throttle = motors_cmd[0, 0]
+    kit.motor2.throttle = motors_cmd[1, 0]
+    kit.motor3.throttle = motors_cmd[2, 0]
+    kit.motor4.throttle = motors_cmd[3, 0]
+
+    print(direction)
+    print(motors_cmd)
+
 def listener():
 
     # In ROS, nodes are uniquely named. If two nodes with the same
@@ -44,9 +48,22 @@ def listener():
 
     rospy.Subscriber(topic_name, Twist, callback)
 
+    rospy.loginfo("Starting listening topic "+topic_name)
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
 
 if __name__ == '__main__':
+    for i in range(jacobian.nb_lines):
+        for j in range(jacobian.nb_columns):
+            jacobian[i, j] = 1
+
+    jacobian[0, 0] = -1
+    jacobian[1, 0] = -1
+    jacobian[0, 2] = -1
+    jacobian[2, 2] = -1
+    print(jacobian)
+
+
+
     listener()
 

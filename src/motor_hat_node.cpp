@@ -102,6 +102,7 @@ int init_hat() {
     mode1 &= ~SLEEP;
     write(MODE1, mode1);
     usleep(5000);
+    ROS_INFO("hat initialized (%d)", fd);
     return 0;
 }
 
