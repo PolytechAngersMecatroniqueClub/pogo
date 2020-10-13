@@ -8,6 +8,9 @@ from adafruit_motorkit import MotorKit
 kit = MotorKit()
 
 def callback(vel_msg):
+    """
+        note: throttle= [-1; 1]
+    """
     global kit
 
     if vel_msg.linear.x != 0:
@@ -36,9 +39,10 @@ def listener():
     # name for our 'listener' node so that multiple listeners can
     # run simultaneously.
     rospy.init_node('motor_hat_twist_node', anonymous=True)
-    rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
 
-    rospy.Subscriber("/pogo/cmd_twist", Twist, callback)
+    topic_name = rospy.get_param('cmd_topic_name', '/pogo/cmd_vel')
+
+    rospy.Subscriber(topic_name, Twist, callback)
 
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()

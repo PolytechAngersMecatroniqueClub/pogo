@@ -101,12 +101,6 @@ if __name__ == "__main__":
 
     # create the ROS node
     rospy.init_node('leap_to_twist_node', anonymous=False)
-    # create the publisher for the velocity twist
-    pub = rospy.Publisher('/pogo/cmd_vel', Twist, queue_size=10)
-    # to sleep in the loop, the Twist will be publised at a 10Hz rate
-    rate = rospy.Rate(10)  # 10 Hz
-
-    params = Parameters()
 
     # get the parameters from the launch file
     # the second value is the default value
@@ -118,6 +112,18 @@ if __name__ == "__main__":
     params.max_y =     rospy.get_param('max_y',     100)
     params.min_theta = rospy.get_param('min_theta',-0.9)
     params.max_theta = rospy.get_param('max_theta', 0.9)
+    topic_name =       rospy.get_param('cmd_topic_name', '/pogo/cmd_vel')
+
+
+
+
+
+    # create the publisher for the velocity twist
+    pub = rospy.Publisher(topic_name, Twist, queue_size=10)
+    # to sleep in the loop, the Twist will be publised at a 10Hz rate
+    rate = rospy.Rate(10)  # 10 Hz
+
+    params = Parameters()
 
     # The Leap motion library can only be used with python 2.7...
     if sys.version_info[0] > 2 or sys.version_info[1] < 6:
@@ -126,7 +132,7 @@ if __name__ == "__main__":
 
     # The programm leapd should be started to use the LeapMotion
     if not ("leapd" in (p.name() for p in psutil.process_iter())):
-        rospy.logerr("You need to start <leapd> first!")
+        rospy.logerr("You need to start <sudo leapd> first!")
         quit()
 
     # Start the main loop of the node
